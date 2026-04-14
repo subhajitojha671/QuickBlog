@@ -12,6 +12,8 @@ import cors from 'cors';
 
 // Import your MongoDB connection function
 import connectDB from './configs/db.js';
+import adminRoute from './routes/adminRoute.js';
+import blogRoute from './routes/blogRoute.js';
 
 // Create Express app
 const app = express();
@@ -39,6 +41,8 @@ app.use(express.json());
 app.get('/', (req, res) => {
     res.send('API is working');
 });
+app.use('/api/admin', adminRoute);
+app.use('/api/blog', blogRoute);
 
 
 // -------------------- SERVER --------------------

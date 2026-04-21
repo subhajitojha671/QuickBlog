@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { assets, dashboard_data } from '../../assets/assets'
+import BlogTableitem from '../../components/admin/BlogTableitem'
+import { useAppContext } from '../../context/AppContext'
+import toast from 'react-hot-toast'
 
 const Dashboard = () => {
 
@@ -10,8 +13,16 @@ const Dashboard = () => {
     recentBlogs: []
   })
 
+  const {axios} = useAppContext();
+  
+
   const fetchDashboard = async () => {
-    setDashboardData(dashboard_data)
+    try{
+      const {data} = await axios.get('/api/admin/dashboard')
+      data.success ? setDashboardData(data.dashboardData) : toast.error(data.message)
+    }catch(error){
+      toast.error(error.message)
+    }
   }
 
   useEffect(()=>{
@@ -70,6 +81,11 @@ const Dashboard = () => {
                 <th scope='col' className='px-2 py-4'>Action</th>
               </tr>
             </thead>
+            <tbody>
+              {dashboardData.recentBlogs.map((blog, index)=>{
+                return <BlogTableitem key={blog._id} blog={blog} fetchBlog={fetchDashboard} index={index + 1}/>
+              })}
+            </tbody>
           </table>
       </div>
       

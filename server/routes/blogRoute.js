@@ -2,6 +2,7 @@ import express from "express";
 import upload from "../middleware/multer.js";
 import auth from "../middleware/auth.js";
 import { addBlog, addComment, deleteBlogById, getAllBlogs, getBlogById, getBlogComments, togglePublish } from "../controllers/blogController.js";
+import { generateBlogContent } from "../controllers/blogController.js";
 
 const blogRoute = express.Router();
 
@@ -13,5 +14,9 @@ blogRoute.post("/toggle-publish", auth, togglePublish);
 
 blogRoute.post("/add-comment", addComment);
 blogRoute.post("/comment", getBlogComments);
+
+blogRoute.post("/generate", auth, generateBlogContent);
+
+
 
 export default blogRoute;

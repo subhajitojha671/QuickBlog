@@ -2,14 +2,14 @@ import fs from "fs/promises";
 import imagekit from "../configs/imageKit.js";
 import Blog from "../models/Blog.js";
 import Comment from "../models/comments.js";
-import { create } from "domain";
+import main from "../configs/gemini.js";
 
 /* =========================
    ADD BLOG
 ========================= */
 export const addBlog = async (req, res) => {
   try {
-    const { title, subTitle, description, category } = JSON.parse(req.body.blog);
+    const { title, subTitle, description, category, isPublished } = req.body;
     const imageFile = req.file;
 
     if (!title || !description || !category || !imageFile) {
@@ -39,7 +39,7 @@ export const addBlog = async (req, res) => {
       description,
       category,
       image: optimizedImageUrl,
-      isPublished: true,
+      isPublished: isPublished === "true",
     });
 
     await fs.unlink(imageFile.path);
@@ -60,7 +60,7 @@ export const addBlog = async (req, res) => {
 ========================= */
 export const getAllBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find({ isPublished: true });
+    const blogs = await Blog.find({ isPublished: true }).sort({ createdAt: -1 });
     res.json({ success: true, blogs });
   } catch (error) {
     res.json({ success: false, message: error.message });
@@ -92,15 +92,21 @@ export const getBlogById = async (req, res) => {
 ========================= */
 export const deleteBlogById = async (req, res) => {
   try {
-    const { Id } = req.body; 
-    await Blog.findByIdAndDelete(Id);
+    const { id } = req.body; // ✅ FIXED
 
-    //delete all comments associated with the blog
-    await Comment.deleteMany({blog : id});
+    if (!id) {
+      return res.json({ success: false, message: "Blog ID is required" });
+    }
 
+    await Blog.findByIdAndDelete(id);
 
-    res.json({success: true, message: "Blog deleted successfully"});
+    // delete all comments associated with the blog
+    await Comment.deleteMany({ blog: id });
 
+    res.json({
+      success: true,
+      message: "Blog deleted successfully",
+    });
 
   } catch (error) {
     res.json({
@@ -115,14 +121,14 @@ export const deleteBlogById = async (req, res) => {
 ========================= */
 export const togglePublish = async (req, res) => {
   try {
-
-     console.log("BODY:", req.body);
     const { id } = req.body;
-   
-
-    console.log("ID:", id);  
 
     const blog = await Blog.findById(id);
+
+    if (!blog) {
+      return res.json({ success: false, message: "Blog not found" });
+    }
+
     blog.isPublished = !blog.isPublished;
 
     await blog.save();
@@ -130,7 +136,6 @@ export const togglePublish = async (req, res) => {
     res.json({
       success: true,
       message: "Blog publish status updated successfully",
-      
     });
 
   } catch (error) {
@@ -138,27 +143,47 @@ export const togglePublish = async (req, res) => {
   }
 };
 
-
+/* =========================
+   ADD COMMENT
+========================= */
 export const addComment = async (req, res) => {
-  try{
-    const {blog, name, content} = req.body;
-    
-    await Comment.create({blog, name, content});
+  try {
+    const { blog, name, content } = req.body;
 
-    res.json({success: true, message: "Comment added successfully"});
+    await Comment.create({ blog, name, content });
 
-  }catch(error){
-    res.json({success: false, message: error.message});
+    res.json({ success: true, message: "Comment added successfully" });
+
+  } catch (error) {
+    res.json({ success: false, message: error.message });
   }
-}
+};
 
-
+/* =========================
+   GET BLOG COMMENTS
+========================= */
 export const getBlogComments = async (req, res) => {
+  try {
+    const { blogId } = req.body;
+
+    const comments = await Comment.find({
+      blog: blogId,
+      isApproved: true,
+    }).sort({ createdAt: -1 });
+
+    res.json({ success: true, comments });
+
+  } catch (error) {
+    res.json({ success: false, message: error.message });
+  }
+};
+
+export const generateBlogContent = async (req, res) => {
   try{
-    const {blogId} = req.body;
-    const comments= await Comment.find({blog: blogId, isApproved: true}).sort({createdAt: -1});
-    res.json({success: true, comments});
-  }catch(error){
-    res.json({success: false, message: error.message});
+    const {prompt} = req.body;
+    const content = await main(prompt + ' Generate a blog content for this topic in simple text format');
+    res.json({ success: true, content });
+  } catch (error) {
+    res.json({ success: false, message: error.message });
   }
 }

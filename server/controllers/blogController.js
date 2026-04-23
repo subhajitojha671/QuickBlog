@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import imagekit from "../configs/imageKit.js";
 import Blog from "../models/Blog.js";
 import Comment from "../models/comments.js";
-import main from "../configs/gemini.js";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /* =========================
    ADD BLOG
@@ -92,15 +92,13 @@ export const getBlogById = async (req, res) => {
 ========================= */
 export const deleteBlogById = async (req, res) => {
   try {
-    const { id } = req.body; // ✅ FIXED
+    const { id } = req.body;
 
     if (!id) {
       return res.json({ success: false, message: "Blog ID is required" });
     }
 
     await Blog.findByIdAndDelete(id);
-
-    // delete all comments associated with the blog
     await Comment.deleteMany({ blog: id });
 
     res.json({
@@ -130,7 +128,6 @@ export const togglePublish = async (req, res) => {
     }
 
     blog.isPublished = !blog.isPublished;
-
     await blog.save();
 
     res.json({
@@ -178,12 +175,46 @@ export const getBlogComments = async (req, res) => {
   }
 };
 
+/* =========================
+   GENERATE BLOG CONTENT (FIXED)
+========================= */
 export const generateBlogContent = async (req, res) => {
-  try{
-    const {prompt} = req.body;
-    const content = await main(prompt + ' Generate a blog content for this topic in simple text format');
-    res.json({ success: true, content });
+  try {
+    const { prompt } = req.body;
+
+    // ✅ Safety check
+    if (!process.env.GEMINI_API_KEY) {
+      return res.json({
+        success: false,
+        message: "API key missing in .env",
+      });
+    }
+
+    // ✅ Create instance INSIDE function (important)
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
+    const model = genAI.getGenerativeModel({
+      model: "gemini-pro",
+    });
+
+    const result = await model.generateContent(
+      prompt + " Generate a blog content in simple text format"
+    );
+
+    const response = await result.response;
+    const text = response.text();
+
+    res.json({
+      success: true,
+      content: text,
+    });
+
   } catch (error) {
-    res.json({ success: false, message: error.message });
+    console.error("Gemini Error:", error);
+
+    res.json({
+      success: false,
+      message: error.message,
+    });
   }
-}
+};

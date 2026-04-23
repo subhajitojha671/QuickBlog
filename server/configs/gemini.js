@@ -1,22 +1,16 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
 export const generateWithGemini = async (prompt) => {
   try {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new Error("API key missing in .env");
-    }
-
-    // ✅ Create instance INSIDE function (important)
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
     const model = genAI.getGenerativeModel({
-      model: "gemini-3-flash-preview", // ✅ stable model
+      model: "gemini-3-flash-preview", // ✅ FIXED MODEL
     });
 
     const result = await model.generateContent(prompt);
-    const response = await result.response;
 
-    return response.text();
+    return result.response.text();
 
   } catch (error) {
     console.error("Gemini Service Error:", error);

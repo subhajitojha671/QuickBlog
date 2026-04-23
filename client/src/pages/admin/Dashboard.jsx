@@ -83,7 +83,7 @@ const Dashboard = () => {
             </thead>
             <tbody>
               {dashboardData.recentBlogs.map((blog, index)=>{
-                return <BlogTableitem key={blog._id} blog={blog} fetchBlog={fetchDashboard} index={index + 1}/>
+                return <BlogTableitem key={blog._id} blog={blog} fetchBlogs={fetchDashboard} index={index + 1}/>
               })}
             </tbody>
           </table>

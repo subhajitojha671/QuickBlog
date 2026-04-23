@@ -2,7 +2,7 @@ import fs from "fs/promises";
 import imagekit from "../configs/imageKit.js";
 import Blog from "../models/Blog.js";
 import Comment from "../models/comments.js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { generateWithGemini } from "../configs/gemini.js";
 
 /* =========================
    ADD BLOG
@@ -176,41 +176,30 @@ export const getBlogComments = async (req, res) => {
 };
 
 /* =========================
-   GENERATE BLOG CONTENT (FIXED)
+   GENERATE BLOG CONTENT (FINAL)
 ========================= */
 export const generateBlogContent = async (req, res) => {
   try {
     const { prompt } = req.body;
 
-    // ✅ Safety check
-    if (!process.env.GEMINI_API_KEY) {
+    if (!prompt) {
       return res.json({
         success: false,
-        message: "API key missing in .env",
+        message: "Prompt is required",
       });
     }
 
-    // ✅ Create instance INSIDE function (important)
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-    const model = genAI.getGenerativeModel({
-      model: "gemini-pro",
-    });
-
-    const result = await model.generateContent(
+    const content = await generateWithGemini(
       prompt + " Generate a blog content in simple text format"
     );
 
-    const response = await result.response;
-    const text = response.text();
-
     res.json({
       success: true,
-      content: text,
+      content,
     });
 
   } catch (error) {
-    console.error("Gemini Error:", error);
+    console.error("Generate Blog Error:", error);
 
     res.json({
       success: false,

@@ -1,17 +1,16 @@
-// Import Express framework to create server
+// Import Express framework
 import express from 'express';
 
-// Load environment variables from .env file
+// Load environment variables
 import 'dotenv/config';
 
-// Import CORS to allow cross-origin requests (frontend ↔ backend)
+// Import CORS
 import cors from 'cors';
 
-// ❌ Not needed (you are not using these)
-// import { connect, get } from 'mongoose';
-
-// Import your MongoDB connection function
+// Import database connection
 import connectDB from './configs/db.js';
+
+// Import routes
 import adminRoute from './routes/adminRoute.js';
 import blogRoute from './routes/blogRoute.js';
 
@@ -19,42 +18,57 @@ import blogRoute from './routes/blogRoute.js';
 const app = express();
 
 
-// Connect to MongoDB database
-// This will run before server starts
-await connectDB();
+// -------------------- DATABASE CONNECTION --------------------
+
+try {
+    await connectDB();
+    console.log("MongoDB Connected");
+} catch (error) {
+    console.log("Database Connection Error:", error.message);
+}
 
 
 // -------------------- MIDDLEWARE --------------------
 
-// Enable CORS (important for frontend connection)
+// Enable CORS
 app.use(cors());
 
-// Parse incoming JSON data (req.body)
+// Parse JSON requests
 app.use(express.json());
 
 
 // -------------------- ROUTES --------------------
 
-// Test route
-// When you open http://localhost:PORT/
-// it will show "API is working"
+// Home route
 app.get('/', (req, res) => {
     res.send('API is working');
 });
+
+// Prevent favicon crash on Vercel
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end();
+});
+
+// API Routes
 app.use('/api/admin', adminRoute);
 app.use('/api/blog', blogRoute);
 
 
-// -------------------- SERVER --------------------
+// -------------------- ERROR HANDLER --------------------
 
-// Set PORT from .env or default 3000
-const PORT = process.env.PORT || 3000;
+app.use((err, req, res, next) => {
+    console.error(err.stack);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+    res.status(500).json({
+        success: false,
+        message: err.message || "Internal Server Error"
+    });
 });
 
 
-// Export app (useful for testing or modular structure)
+// -------------------- EXPORT APP --------------------
+
+// IMPORTANT:
+// Do NOT use app.listen() on Vercel
+
 export default app;

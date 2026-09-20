@@ -1,72 +1,40 @@
 import React from 'react'
-
-// Import assets (logo, images, etc.)
-import { assets } from '../assets/assets'
-
-// Import footer data (sections like Company, Support, etc.)
-import { footer_data } from '../assets/assets';
+import { motion } from 'framer-motion'
+import { assets, footer_data } from '../assets/assets';
 
 const Footer = () => {
   return (
-    // Main container with padding and background color
-    <div className='px-6 md:px-16 lg:px-24 xl:px-32 bg-primary/5'>
-      
-      {/* Top section of footer */}
-      <div className='flex flex-col md:flex-row items-start justify-between gap-10 py-10 border-b border-gray-500/30 text-gray-500'>
-        
-        {/* Left side: Logo + Description */}
-        <div>
-          {/* Logo image */}
-          <img src={assets.logo} alt="logo" className='w-32 sm:w-44' />
-
-          {/* Description text */}
-          <p className='max-w-[410px] mt-6'>
-            Lorem ipsum dolor sit amet consectetur, adipisicing elit. 
-            Rerum unde quaerat eveniet cumque accusamus atque qui error quo enim fugiat?
+    <motion.footer
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.2 }}
+      transition={{ duration: 0.5 }}
+      className='px-6 md:px-16 lg:px-32 bg-white border-t border-gray-100 pt-16'
+    >
+      <div className='flex flex-col md:flex-row items-start justify-between gap-12 pb-12 border-b border-gray-100'>
+        <div className='max-w-sm'>
+          <img src={assets.logo} alt="logo" className='w-28 sm:w-36 mb-6' />
+          <p className='text-gray-500 text-sm leading-relaxed'>
+            Empowering writers to share their voice. Built with modern web technologies to ensure a seamless reading and writing experience.
           </p>
         </div>
-
-        {/* Right side: Footer links sections */}
-        <div className='flex flex-wrap justify-between w-full md:w-[45%] gap-5'>
-          
-          {/* Loop through footer_data */}
+        <div className='flex flex-wrap gap-12 md:gap-24'>
           {footer_data.map((section, index) => (
-            
-            // Each section (like Company, Support)
             <div key={index}>
-              
-              {/* Section title */}
-              <h3 className='font-semibold text-base text-gray-900 md:mb-5 mb-2'>
-                {section.title}
-              </h3>
-
-              {/* Links list */}
-              <ul className='text-sm space-y-1'>
-                
-                {/* Loop through links inside each section */}
+              <h3 className='font-bold text-gray-900 mb-4'>{section.title}</h3>
+              <ul className='flex flex-col space-y-3'>
                 {section.links.map((link, i) => (
-                  <li key={i}>
-                    
-                    {/* Link item */}
-                    <a href='#' className='hover:underline transition'>
-                      {link}
-                    </a>
-                  </li>
+                  <li key={i}><a href='#' className='text-sm text-gray-500 hover:text-gray-900 transition-colors'>{link}</a></li>
                 ))}
               </ul>
-
             </div>
           ))}
         </div>
-
       </div>
-
-      {/* Bottom copyright section */}
-      <p className='py-4 text-center text-sm md:text-base text-gray-500/80'>
-        Copyright 2026 © QuickBlog. All rights reserved.
-      </p>
-
-    </div>
+      <div className='py-6 flex flex-col sm:flex-row items-center justify-between gap-4'>
+        <p className='text-sm text-gray-400'>© {new Date().getFullYear()} QuickBlog. All rights reserved.</p>
+      </div>
+    </motion.footer>
   )
 }
 

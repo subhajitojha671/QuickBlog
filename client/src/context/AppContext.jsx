@@ -3,26 +3,41 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
 
-// Base URL
+// Base URL setup for Vite
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL;
 
 // Create Context
 const AppContext = createContext();
 
-// Provider
+// Provider Component
 export const AppProvider = ({ children }) => {
+  const navigate = useNavigate();
 
-  const navigate = useNavigate(); // ✅ correct
-
-  const [token, setToken] = useState(null);
+  // Initialize state directly from localStorage so it's instantly available
+  const [token, setToken] = useState(localStorage.getItem("token") || null);
   const [blogs, setBlogs] = useState([]);
   const [input, setInput] = useState("");
+
+  // ✅ Automatically sync axios headers and localStorage whenever the token changes
+  useEffect(() => {
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = token;
+      localStorage.setItem("token", token);
+    } else {
+      delete axios.defaults.headers.common["Authorization"];
+      localStorage.removeItem("token");
+    }
+  }, [token]);
 
   // Fetch Blogs
   const fetchBlogs = async () => {
     try {
       const { data } = await axios.get("/api/blog/all");
-      data.success ? setBlogs(data.blogs) : toast.error(data.message);
+      if (data.success) {
+        setBlogs(data.blogs);
+      } else {
+        toast.error(data.message);
+      }
     } catch (error) {
       toast.error(error.message);
     }
@@ -31,12 +46,6 @@ export const AppProvider = ({ children }) => {
   // Run on load
   useEffect(() => {
     fetchBlogs();
-
-    const storedToken = localStorage.getItem("token"); // ✅ renamed
-    if (storedToken) {
-      setToken(storedToken);
-      axios.defaults.headers.common["Authorization"] = storedToken;
-    }
   }, []);
 
   // Context Value
@@ -49,6 +58,7 @@ export const AppProvider = ({ children }) => {
     setBlogs,
     input,
     setInput,
+    fetchBlogs, // ✅ Exported so you can trigger a refresh from any component
   };
 
   return (
@@ -60,5 +70,5 @@ export const AppProvider = ({ children }) => {
 
 // Custom Hook
 export const useAppContext = () => {
-  return useContext(AppContext); // ✅ now works
+  return useContext(AppContext);
 };

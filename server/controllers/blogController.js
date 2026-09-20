@@ -1,4 +1,3 @@
-import fs from "fs/promises";
 import imagekit from "../configs/imageKit.js";
 import Blog from "../models/Blog.js";
 import Comment from "../models/comments.js";
@@ -16,10 +15,8 @@ export const addBlog = async (req, res) => {
       return res.json({ success: false, message: "Missing required fields" });
     }
 
-    const fileBuffer = await fs.readFile(imageFile.path);
-
     const response = await imagekit.upload({
-      file: fileBuffer.toString("base64"),
+      file: imageFile.buffer.toString("base64"),
       fileName: imageFile.originalname,
       folder: "/blogs",
     });
@@ -41,8 +38,6 @@ export const addBlog = async (req, res) => {
       image: optimizedImageUrl,
       isPublished: isPublished === "true",
     });
-
-    await fs.unlink(imageFile.path);
 
     res.json({ success: true, message: "Blog added successfully" });
 

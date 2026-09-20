@@ -56,6 +56,8 @@ const Login = () => {
             <label className='font-semibold'>Email</label>
             <input
               type='email'
+              name='email'
+              autoComplete='username'
               required
               placeholder='your email id'
               onChange={e => setEmail(e.target.value)}
@@ -68,6 +70,8 @@ const Login = () => {
             <label className='font-semibold'>Password</label>
             <input
               type='password'
+              name='password'
+              autoComplete='current-password'
               required
               placeholder='your password'
               onChange={e => setPassword(e.target.value)}

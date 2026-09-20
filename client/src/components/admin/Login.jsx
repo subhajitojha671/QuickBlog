@@ -6,8 +6,8 @@ const Login = () => {
 
   const { axios, setToken, navigate } = useAppContext();
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const [email, setEmail] = useState('your-admin-email@example.com')
+  const [password, setPassword] = useState('your-admin-password')
 
   // ✅ FIXED: async + correct name
   const handleSubmit = async (e) => {

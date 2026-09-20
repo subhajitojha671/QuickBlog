@@ -184,9 +184,51 @@ export const generateBlogContent = async (req, res) => {
       });
     }
 
-    const content = await generateWithGemini(
-      prompt + " Generate a blog content in simple text format"
-    );
+    const structuredPrompt = `
+You are a professional blog content writer and HTML formatter.
+
+Generate a complete, well-structured blog based on this topic:
+
+"${prompt}"
+
+Return ONLY valid HTML. Do not use Markdown. Do not wrap the response in \`\`\`html or \`\`\`.
+
+Use semantic HTML to structure the blog:
+
+- Use <h1> for the main title.
+- Use <h2> for major sections.
+- Use <h3> for subsections.
+- Use <p> for normal paragraphs.
+- Use <strong> for important words or sentences that should be bold.
+- Use <em> for emphasis.
+- Use <ul><li> for unordered lists.
+- Use <ol><li> for ordered lists.
+- Use <blockquote> for important quotes or key statements.
+- Use <a href="URL"> for relevant links when appropriate.
+- Use tables with <table>, <thead>, <tbody>, <tr>, <th>, and <td> when a comparison or structured data would benefit from a table.
+- Use <code> for technical terms or code snippets when appropriate.
+- Use <pre><code> for multi-line code examples.
+- Use <span style="color: #2563eb;">...</span> for important highlighted text.
+- Use <span style="color: #16a34a;">...</span> for positive/key points.
+- Use <span style="color: #dc2626;">...</span> for warnings or important cautions.
+- Use <hr> to separate major sections when appropriate.
+
+Formatting rules:
+1. Make the content easy to read.
+2. Use headings instead of making section titles bold.
+3. Bold important keywords naturally.
+4. Use colors sparingly and only when they improve readability.
+5. Do not color entire paragraphs.
+6. Do not use excessive formatting.
+7. Keep the HTML clean and semantic.
+8. Do not include <html>, <head>, or <body> tags.
+9. Do not include CSS outside inline styles.
+10. Return only the blog HTML.
+
+The final output should be ready to insert directly into a rich-text blog editor.
+`;
+
+    const content = await generateWithGemini(structuredPrompt);
 
     res.json({
       success: true,
@@ -196,9 +238,9 @@ export const generateBlogContent = async (req, res) => {
   } catch (error) {
     console.error("Generate Blog Error:", error);
 
-    res.json({
+    res.status(500).json({
       success: false,
-      message: error.message,
+      message: "Failed to generate blog content",
     });
   }
 };
